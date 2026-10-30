@@ -1,5 +1,6 @@
 
 # Active Directory IAM Lab — MOVER
+
 ## Employee Role Change | Access Modification | RBAC | Least Privilege
 
 ![Status](https://img.shields.io/badge/Project-Completed-brightgreen)
@@ -8,19 +9,25 @@
 
 ---
 
-# Project Overview
+## Project Overview
 
-This project demonstrates the **Mover phase of the Identity and Access Management (IAM) lifecycle**, focusing on modifying employee access privileges when their job responsibilities change.
+This project demonstrates the **Mover phase of the Identity and Access Management (IAM) lifecycle**, focusing on modifying employee access privileges when job responsibilities change.
 
-Using Microsoft Active Directory, Windows Server, PowerShell, and Azure Virtual Machines, I simulated an employee transitioning into a Finance role requiring elevated file permissions.
+Using Microsoft Active Directory, Windows Server, PowerShell, and Microsoft Azure Virtual Machines, I simulated an employee transitioning into a Finance role requiring elevated file permissions.
 
 The project involved reviewing account attributes, updating security group membership, validating NTFS and SMB permissions, and testing resource access from a domain-joined Windows Client VM.
 
-The objective was to demonstrate **Role-Based Access Control (RBAC)**, the **Principle of Least Privilege (PoLP)**, and identity lifecycle management.
+**Project objectives:**
+
+- Demonstrate Role-Based Access Control (RBAC).
+- Apply the Principle of Least Privilege (PoLP).
+- Modify employee access following a role change.
+- Verify appropriate read/write permissions.
+- Confirm that existing read-only restrictions remain enforced.
 
 ---
 
-# Technologies and Environments Used
+## Technologies and Environments Used
 
 - Microsoft Azure Virtual Machines
 - Windows Server
@@ -33,7 +40,7 @@ The objective was to demonstrate **Role-Based Access Control (RBAC)**, the **Pri
 - Active Directory Security Groups
 - Organizational Units (OUs)
 
-## Lab Infrastructure
+### Lab Infrastructure
 
 | Component | Description |
 |---|---|
@@ -49,28 +56,30 @@ The objective was to demonstrate **Role-Based Access Control (RBAC)**, the **Pri
 
 ---
 
-# Business Scenario
+## Business Scenario
 
-Sarah Williams was assigned a Finance role requiring additional access privileges.
+Sarah Williams transitioned into a Finance role requiring additional access privileges.
 
-As the IAM administrator, I was responsible for reviewing her Active Directory account, updating the appropriate security group membership, and verifying that her permissions aligned with her new job responsibilities.
+As the IAM administrator, I reviewed her Active Directory account, updated the appropriate security group membership, and verified that her permissions aligned with her new responsibilities.
 
 The Finance environment contained two security groups:
 
-- **GG_FINANCE_READONLY** — Read-only access
-- **GG_FINANCE_READWRITE** — Read and modify access
+| Security Group | Access Level |
+|---|---|
+| `GG_FINANCE_READONLY` | Read-only access |
+| `GG_FINANCE_READWRITE` | Read and modify access |
 
-The objective was to provide Sarah with the appropriate permissions while ensuring employees assigned read-only access remained restricted.
+The goal was to grant Sarah the permissions required for her Finance responsibilities without granting unnecessary access to other employees.
 
 ---
 
-# Phase 1 — Review Existing Account and Permissions
+# Phase 1 — Active Directory Account Review
 
-## Step 1: Review Active Directory Group Membership
+## Step 1: Review Sarah Williams's Group Membership
 
 I opened Active Directory Users and Computers (ADUC) and reviewed Sarah Williams's account and security group membership.
 
-This allowed me to identify her assigned access and verify that she belonged to the appropriate Finance security group.
+This allowed me to verify that Sarah belonged to the appropriate Finance security group.
 
 ![Sarah Williams Group Membership](01-sarah-readwrite-group-membership.png)
 
@@ -78,25 +87,25 @@ This allowed me to identify her assigned access and verify that she belonged to 
 
 ---
 
-## Step 2: Verify Account Information Using PowerShell
+## Step 2: Verify Sarah's Account Using PowerShell
 
-I used PowerShell to review Sarah's Active Directory account properties and security group assignments.
+I used PowerShell to review Sarah's Active Directory account properties and assigned security groups.
 
-### Account Verification
+**Account verification:**
 
 ```powershell
 Get-ADUser -Identity "sarah.williams" -Properties Department,Title,Enabled |
 Select-Object Name,SamAccountName,Department,Title,Enabled
 ```
 
-### Security Group Verification
+**Security group verification:**
 
 ```powershell
 Get-ADPrincipalGroupMembership "sarah.williams" |
 Select-Object Name
 ```
 
-These commands verify that the employee account exists and identify the security groups assigned to the user.
+These commands allow administrators to verify user account information and assigned access groups.
 
 ![Sarah PowerShell Verification](02-sarah-account-powershell-verification.png)
 
@@ -104,19 +113,19 @@ These commands verify that the employee account exists and identify the security
 
 ---
 
-# Phase 2 — Review Role-Based Access Controls
+# Phase 2 — Role-Based Access Control
 
 ## Step 3: Validate Read-Only Access Restrictions
 
 Before validating elevated permissions, I reviewed the behavior of an account assigned read-only access to the Finance shared folder.
 
-The user could access existing departmental resources but could not save unauthorized changes.
+The account could access existing departmental resources but could not save unauthorized changes.
 
-This demonstrated the importance of enforcing least-privilege permissions.
+This demonstrated the importance of least-privilege access controls.
 
-![Finance Read Only Test](03-finance-readonly-control-test.png)
+![Finance Read-Only Test](03-finance-readonly-control-test.png)
 
-**Figure 3:** Read-only access test showing that unauthorized modifications were denied.
+**Figure 3:** Read-only access test demonstrating restricted file modification.
 
 ---
 
@@ -136,18 +145,18 @@ Maintaining accurate employee information supports identity governance and acces
 
 I reviewed the Finance security groups configured in Active Directory.
 
-The groups were designed to separate users requiring read-only access from users requiring permission to modify departmental files.
+These groups separate employees requiring read-only access from employees who need permission to modify departmental files.
 
-### Security Group Structure
+**Access structure:**
 
-| Security Group | Access Level |
+| Security Group | NTFS Permission |
 |---|---|
-| GG_FINANCE_READONLY | Read & Execute |
-| GG_FINANCE_READWRITE | Modify |
+| `GG_FINANCE_READONLY` | Read & Execute |
+| `GG_FINANCE_READWRITE` | Modify |
 
-Using security groups allows IAM administrators to manage access based on employee roles instead of assigning permissions directly to individual users.
+Using security groups simplifies permission administration and helps enforce RBAC.
 
-![Finance Read Only Security Group](05-finance-readonly-group-reference.png)
+![Finance Read-Only Security Group](05-finance-readonly-group-reference.png)
 
 **Figure 5:** Finance read-only security group configuration in ADUC.
 
@@ -161,29 +170,29 @@ Organizational units help administrators organize identities by department and a
 
 ![Finance Organizational Unit](06-finance-analyst-ou-review.png)
 
-**Figure 6:** Finance Analyst organizational unit in Active Directory.
+**Figure 6:** Finance organizational unit review in Active Directory.
 
 ---
 
-# Phase 3 — Validate Elevated Access
+# Phase 3 — Finance Resource Access Testing
 
 ## Step 7: Test Finance Folder File Creation
 
-After reviewing Sarah's updated access, I used the Windows Client VM to test access to the Finance shared folder.
+After reviewing Sarah's updated permissions, I used the Windows Client VM to access the Finance shared folder.
 
-The shared resource was accessed using:
+**Network path:**
 
 ```text
 \\DC-1\Finance
 ```
 
-I performed a file creation test using a document named:
+I performed a file creation test using:
 
 ```text
 manager_test.txt
 ```
 
-This test confirmed that Sarah could perform file operations associated with her updated role.
+The objective was to confirm that Sarah could create files within the Finance shared folder.
 
 ![Sarah Manager Test File](07-sarah-manager-test-file-created.png)
 
@@ -193,9 +202,9 @@ This test confirmed that Sarah could perform file operations associated with her
 
 ## Step 8: Open the Test File
 
-I opened the manager test file using Notepad on the Client VM.
+I opened the manager test file using Notepad on the Windows Client VM.
 
-This verified that the file was accessible from the Finance network share.
+This confirmed that the file was accessible through the Finance network share.
 
 ![Sarah Manager Test Opened](08-sarah-manager-test-file-opened.png)
 
@@ -203,56 +212,56 @@ This verified that the file was accessible from the Finance network share.
 
 ---
 
-# Phase 4 — Verify SMB and NTFS Permissions
+# Phase 4 — SMB and NTFS Permission Verification
 
 ## Step 9: Review SMB Share Permissions
 
-I used PowerShell on the Domain Controller to inspect the permissions configured on the Finance SMB share.
+I used PowerShell on the Domain Controller to inspect the Finance SMB share permissions.
 
-### PowerShell Command
+**PowerShell command:**
 
 ```powershell
 Get-SmbShareAccess -Name "Finance"
 ```
 
-The share was configured with separate access levels for the Finance security groups.
+**Share permissions:**
 
 | Security Group | SMB Permission |
 |---|---|
-| GG_FINANCE_READONLY | Read |
-| GG_FINANCE_READWRITE | Change |
+| `GG_FINANCE_READONLY` | Read |
+| `GG_FINANCE_READWRITE` | Change |
 
-This configuration supports role-based access management.
+These permissions support role-based access management.
 
 ![Finance SMB Share Permissions](09-finance-smb-share-access-verification.png)
 
 **Figure 9:** PowerShell verification of Finance SMB share permissions.
 
-### NTFS and SMB Permissions
+### Understanding SMB and NTFS Permissions
 
 Windows file access depends on both SMB share permissions and NTFS permissions.
 
-The effective access granted to a user is limited by the applicable permissions at both layers.
+When accessing a shared folder over the network, the effective permissions are limited by the applicable restrictions at both layers.
 
-For this project:
+In this lab:
 
-- Read-only users received Read & Execute permissions.
-- Read/write users received Modify permissions.
+- Read-only users were assigned Read & Execute permissions.
+- Read/write users were assigned Modify permissions.
 - Administrative accounts retained appropriate administrative access.
 
 ---
 
-# Phase 5 — Test File Modification and Cleanup
+# Phase 5 — File Modification and Deletion Testing
 
 ## Step 10: Validate File Modification
 
 I tested Sarah Williams's ability to edit the manager test file within the Finance shared folder.
 
-The purpose was to confirm that her assigned permissions supported the file operations required by her updated job responsibilities.
+The objective was to verify that her assigned permissions supported the file operations required by her updated responsibilities.
 
 ![Sarah File Write Validation](10-sarah-file-write-validation.png)
 
-**Figure 10:** File modification test performed using the manager test document.
+**Figure 10:** File modification test using the manager test document.
 
 ---
 
@@ -272,6 +281,8 @@ The screenshot captures the Windows deletion confirmation prompt.
 
 After performing file access tests, I reviewed the Finance shared folder to inspect its contents.
 
+This provided an additional opportunity to validate the state of the shared resource following testing.
+
 ![Finance Folder After Test](12-finance-folder-after-file-test.png)
 
 **Figure 12:** Finance shared folder after file-operation testing.
@@ -280,25 +291,24 @@ After performing file access tests, I reviewed the Finance shared folder to insp
 
 # Phase 6 — Least-Privilege Regression Testing
 
-## Step 13: Verify Read-Only Restrictions Remain Enforced
+## Step 13: Verify Marcus Johnson's Read-Only Restrictions
 
 After validating Sarah Williams's updated Finance permissions, I performed an additional access test using Marcus Johnson's read-only account.
 
-The objective was to ensure that granting Sarah elevated permissions did not unintentionally modify access restrictions for other Finance employees.
+The objective was to ensure that granting Sarah elevated permissions did not unintentionally change access restrictions for other Finance employees.
 
 Marcus attempted to modify and save an existing Finance document.
 
-The operation was denied, confirming that the read-only security controls remained enforced.
+The operation was denied, demonstrating that the read-only security controls remained enforced.
 
-![Marcus Read-Only Regression Test](13-marcus-readonly-regression-test.png)
+<img width="1280" height="800" alt="13-marcus-readonly-regression-test" src="https://github.com/user-attachments/assets/325210c5-9fa1-417a-9d10-8f3180a4a2ed" />
 
-**Figure 13:** Marcus Johnson's attempt to save modifications was denied, demonstrating continued least-privilege enforcement.
+
+**Figure 13:** Marcus Johnson's attempt to save modifications was denied, confirming continued least-privilege enforcement.
 
 ---
 
 # Access Validation Results
-
-The following table summarizes the activities performed during the Mover lab.
 
 | Test | Result |
 |---|---|
@@ -319,37 +329,37 @@ The following table summarizes the activities performed during the Mover lab.
 
 # IAM Security Concepts Demonstrated
 
-## 1. Role-Based Access Control (RBAC)
+### 1. Role-Based Access Control (RBAC)
 
 Access was managed through Active Directory security groups based on departmental responsibilities.
 
-This approach simplifies permission administration and supports consistent access assignment.
+This approach simplifies permission administration and supports consistent access assignments.
 
-## 2. Principle of Least Privilege (PoLP)
+### 2. Principle of Least Privilege (PoLP)
 
-Employees were assigned permissions appropriate to their job responsibilities.
+Employees received permissions appropriate to their job responsibilities.
 
 Read-only users were restricted from modifying protected Finance resources.
 
-## 3. Identity Lifecycle Management
+### 3. Identity Lifecycle Management
 
-The Mover process demonstrated how IAM administrators manage access when an employee changes roles or responsibilities.
+The Mover process demonstrated how IAM administrators manage access when employees change roles or responsibilities.
 
-## 4. Security Group Management
+### 4. Security Group Management
 
 Active Directory security groups were used to separate users with different permission requirements.
 
-## 5. Access Validation
+### 5. Access Validation
 
 PowerShell and Windows Client VM testing were used to review identity configuration and resource permissions.
 
-## 6. File System Security
+### 6. File System Security
 
 NTFS and SMB permissions were reviewed to understand how access controls affect shared departmental resources.
 
-## 7. Regression Testing
+### 7. Regression Testing
 
-After modifying Sarah Williams's access, I verified that Marcus Johnson's read-only restrictions remained intact.
+After modifying Sarah Williams's access, I verified that Marcus Johnson's read-only restrictions remained enforced.
 
 This helped confirm that permission changes did not unintentionally grant excessive access to another employee.
 
@@ -381,7 +391,7 @@ Successfully completed an IAM Mover simulation involving an employee role change
 
 The project demonstrated practical experience reviewing user identities, managing role-based permissions, verifying security group membership, and testing access to departmental resources.
 
-Additionally, regression testing confirmed that read-only restrictions remained enforced for other Finance employees.
+Additionally, regression testing demonstrated that read-only restrictions remained enforced for other Finance employees.
 
 These activities reflect responsibilities commonly associated with Junior IAM Analysts, Identity Support Specialists, Access Management Analysts, and IT Administrators.
 
